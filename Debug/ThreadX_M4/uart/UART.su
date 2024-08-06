@@ -1,0 +1,9 @@
+../ThreadX_M4/uart/UART.c:46:6:Init_UART_DMA	16	static
+../ThreadX_M4/uart/UART.c:74:6:UART_Enable	16	static
+../ThreadX_M4/uart/UART.c:99:6:UART_Disable	16	static
+../ThreadX_M4/uart/UART.c:127:10:UART_DMA_Receive	24	static
+../ThreadX_M4/uart/UART.c:148:10:UART_DMA_Transmit	32	static
+../ThreadX_M4/uart/UART.c:166:10:UART_Transmit_String	16	static
+../ThreadX_M4/uart/UART.c:174:6:is_UART_Enable	16	static
+../ThreadX_M4/uart/UART.c:179:6:HAL_UART_TxCpltCallback	24	static
+../ThreadX_M4/uart/UART.c:191:6:HAL_UART_ErrorCallback	24	static

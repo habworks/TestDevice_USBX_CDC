@@ -1,0 +1,2 @@
+../Core/Src/Application/Init_App.c:67:6:startAppTasks	48	static
+../Core/Src/Application/Init_App.c:108:5:_write	24	static

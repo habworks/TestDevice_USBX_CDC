@@ -1,0 +1,6 @@
+../Core/Src/Application/TestApp_USB_CDC.c:44:6:testAppMainTask	32	static,ignoring_inline_asm
+../Core/Src/Application/TestApp_USB_CDC.c:85:6:Init_TestAppHandle	4	static,ignoring_inline_asm
+../Core/Src/Application/TestApp_USB_CDC.c:108:10:Init_TestAppHardware	16	static
+../Core/Src/Application/TestApp_USB_CDC.c:147:6:_Error_Handler	24	static,ignoring_inline_asm
+../Core/Src/Application/TestApp_USB_CDC.c:168:13:TPx_Toggle	24	static
+../Core/Src/Application/TestApp_USB_CDC.c:202:13:LED_Toggle	24	static
