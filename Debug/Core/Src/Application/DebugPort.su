@@ -1,6 +1,0 @@
-../Core/Src/Application/DebugPort.c:48:6:debugConsoleTask	32	static
-../Core/Src/Application/DebugPort.c:80:29:Init_DebugConsoleCommand	16	static
-../Core/Src/Application/DebugPort.c:131:19:debugConsoleCommandAdd	24	static
-../Core/Src/Application/DebugPort.c:179:6:debugConsoleCommandSearch	32	static
-../Core/Src/Application/DebugPort.c:253:6:debugConsoleCommandParse	40	static
-../Core/Src/Application/DebugPort.c:359:6:debugConsoleCommandHelp	16	static

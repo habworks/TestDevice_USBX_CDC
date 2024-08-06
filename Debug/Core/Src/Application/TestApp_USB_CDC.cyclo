@@ -1,6 +1,0 @@
-../Core/Src/Application/TestApp_USB_CDC.c:44:6:testAppMainTask	3
-../Core/Src/Application/TestApp_USB_CDC.c:85:6:Init_TestAppHandle	1
-../Core/Src/Application/TestApp_USB_CDC.c:108:10:Init_TestAppHardware	2
-../Core/Src/Application/TestApp_USB_CDC.c:147:6:_Error_Handler	1
-../Core/Src/Application/TestApp_USB_CDC.c:168:13:TPx_Toggle	6
-../Core/Src/Application/TestApp_USB_CDC.c:202:13:LED_Toggle	2
