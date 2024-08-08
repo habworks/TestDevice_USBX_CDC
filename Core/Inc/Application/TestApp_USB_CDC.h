@@ -47,7 +47,8 @@ typedef enum
     USB_EVENT_CDC_INSERTED = 0x01,
     USB_EVENT_CDC_REMOVED = 0x02,
     USB_EVENT_CDC_RX = 0x04,
-    USB_EVENT_CDC_TX = 0x08
+    USB_EVENT_CDC_TX = 0x08,
+    USB_EVENT_MSC_INSERTED = 0x10
 }Type_USB_Event;
 
 typedef struct
