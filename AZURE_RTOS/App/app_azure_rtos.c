@@ -64,7 +64,7 @@ static TX_BYTE_POOL ux_device_app_byte_pool;
 #endif
 
 /* USER CODE BEGIN PV */
-
+TX_BYTE_POOL *Ux_HostAppBytePool = &ux_device_app_byte_pool;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/

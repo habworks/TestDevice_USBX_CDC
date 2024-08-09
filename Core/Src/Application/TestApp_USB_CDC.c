@@ -1,4 +1,5 @@
-/** ****************************************************************************************************
+
+#/** ****************************************************************************************************
  * @file 			TestApp_USB_MSC.c
  * @brief			<Add a descrition of what the file does>
  * ****************************************************************************************************
@@ -29,6 +30,9 @@
 #include "DebugPort.h"
 #include "TerminalEmulatorSupport.h"
 #include "UART.h"
+#include "app_usbx_device.h"
+#include "tx_api.h"
+#include "ux_api.h"
 #include <stdio.h>
 
 
@@ -40,12 +44,16 @@ extern TX_EVENT_FLAGS_GROUP USB_EventFlag;
 // Power toggle test commands
 static void TPx_Toggle(void *TestPoint);
 static void LED_Toggle(void *NotUsed);
+static void commDeviceClassDisable(void *NotUsed);
+static void commDeviceClassEnable(void *NotUsed);
 
 VOID testAppMainTask(ULONG InitValue)
 {
     // STEP 1: Add debug commands associated with the Spokane Task
     debugConsoleCommandAdd(TestApp.DebugConsole, "Toggle ", "Toggle TP<x> (x: 9, 10, 11)", TPx_Toggle, PARTIAL);
     debugConsoleCommandAdd(TestApp.DebugConsole, "LED", "Toggle LED power", LED_Toggle, COMPLETE);
+    debugConsoleCommandAdd(TestApp.DebugConsole, "CDC Off", "Disable CDC", commDeviceClassDisable, COMPLETE);
+    debugConsoleCommandAdd(TestApp.DebugConsole, "CDC On", "Enable CDC", commDeviceClassEnable, COMPLETE);
 
     // STEP 2: Show start up message
     terminal_SetDefaultForegroundColor();
@@ -208,4 +216,25 @@ static void LED_Toggle(void *NotUsed)
         printf("LED is on\r\n");
     else
         printf("LED is off\r\n");
+}
+
+
+static void commDeviceClassDisable(void *NotUsed)
+{
+    USBX_APP_Device_UnInit();
+    if (MX_USBX_Device_UnInit() == TX_SUCCESS)
+        printf("USB CDC Turned off\r\n");
+    else
+        while(1);
+}
+
+
+extern TX_BYTE_POOL *Ux_HostAppBytePool;
+static void commDeviceClassEnable(void *NotUsed)
+{
+    VOID *MemoryPointer;
+    MemoryPointer = (VOID *)Ux_HostAppBytePool;
+    if (MX_USBX_Device_Init(MemoryPointer) != UX_SUCCESS)
+        while(1);
+    printf("USB CDC Turned on\r\n");
 }

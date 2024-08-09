@@ -60,6 +60,8 @@ UINT MX_USBX_Device_Init(VOID *memory_ptr);
 
 /* USER CODE BEGIN EFP */
 VOID USBX_APP_Device_Init(VOID);
+uint16_t MX_USBX_Device_UnInit(void);
+void USBX_APP_Device_UnInit(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

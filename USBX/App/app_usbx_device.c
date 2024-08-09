@@ -27,6 +27,7 @@
 #include "usb_otg.h"
 #include "ux_dcd_stm32.h"
 #include "ux_device_cdc_acm.h"
+#include <stdbool.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -55,6 +56,13 @@ static TX_THREAD ux_device_app_thread;
 static TX_THREAD ux_cdc_read_thread;
 static TX_THREAD ux_cdc_write_thread;
 TX_EVENT_FLAGS_GROUP USB_EventFlag;
+
+UCHAR *USBX_AllocatedStackMemoryPtr;
+UCHAR *USBX_AllocatedHostAppTaskPtr;
+UCHAR *CDC_ACM_ReadMemoryPtr;
+UCHAR *CDC_ACM_WriteMemoryPtr;
+bool USB_EventFlagCreated = false;
+bool USB_OTG_FS_PCD_Init = false;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -94,6 +102,7 @@ UINT MX_USBX_Device_Init(VOID *memory_ptr)
     return TX_POOL_ERROR;
     /* USER CODE END USBX_ALLOCATE_STACK_ERORR */
   }
+  USBX_AllocatedStackMemoryPtr = pointer;
 
   /* Initialize USBX Memory */
   if (ux_system_initialize(pointer, USBX_DEVICE_MEMORY_STACK_SIZE, UX_NULL, 0) != UX_SUCCESS)
@@ -168,6 +177,7 @@ UINT MX_USBX_Device_Init(VOID *memory_ptr)
     return TX_POOL_ERROR;
     /* USER CODE END MAIN_THREAD_ALLOCATE_STACK_ERORR */
   }
+  USBX_AllocatedHostAppTaskPtr = pointer;
 
   /* Create the device application main thread */
   if (tx_thread_create(&ux_device_app_thread, UX_DEVICE_APP_THREAD_NAME, app_ux_device_thread_entry,
@@ -182,16 +192,23 @@ UINT MX_USBX_Device_Init(VOID *memory_ptr)
 
   /* USER CODE BEGIN MX_USBX_Device_Init1 */
   /* Allocate memory for the UX RX thread */
+
   tx_byte_allocate(byte_pool, (VOID **)&pointer, 1024, TX_NO_WAIT);
+  CDC_ACM_ReadMemoryPtr = pointer;
   /* Create the UX RX thread */
   tx_thread_create(&ux_cdc_read_thread, "cdc_acm_read_usbx_app_thread_entry", usbx_cdc_acm_read_thread_entry, 1, pointer, 1024, 20, 20, TX_NO_TIME_SLICE, TX_AUTO_START);
   /* Allocate memory for the UX TX thread */
   tx_byte_allocate(byte_pool, (VOID **)&pointer, 1024, TX_NO_WAIT);
+  CDC_ACM_WriteMemoryPtr = pointer;
   /* Create the UX TX thread */
   tx_thread_create(&ux_cdc_write_thread, "cdc_acm_write_usbx_app_thread_entry", usbx_cdc_acm_write_thread_entry, 1, pointer, 1025, 20, 20, TX_NO_TIME_SLICE, TX_AUTO_START);
-  if (tx_event_flags_create(&USB_EventFlag, "USB Event Flag") != TX_SUCCESS)
+  if (!USB_EventFlagCreated)
   {
-      return(TX_GROUP_ERROR);
+      if (tx_event_flags_create(&USB_EventFlag, "USB Event Flag") != TX_SUCCESS)
+      {
+          return(TX_GROUP_ERROR);
+      }
+      USB_EventFlagCreated = true;
   }
   /* USER CODE END MX_USBX_Device_Init1 */
 
@@ -225,20 +242,25 @@ VOID USBX_APP_Device_Init(VOID)
   /* USER CODE END USB_Device_Init_PreTreatment_0 */
 
   /* USB_OTG_FS init function */
-  MX_USB_OTG_FS_PCD_Init();
+  if (!USB_OTG_FS_PCD_Init)
+  {
+      MX_USB_OTG_FS_PCD_Init();
 
-  /* USER CODE BEGIN USB_Device_Init_PreTreatment_1 */
-  /* Set Rx FIFO */
-  HAL_PCDEx_SetRxFiFo(&hpcd_USB_OTG_FS, 0x100);
+      /* USER CODE BEGIN USB_Device_Init_PreTreatment_1 */
+      /* Set Rx FIFO */
+      HAL_PCDEx_SetRxFiFo(&hpcd_USB_OTG_FS, 0x100);
 
-  /* Set Tx FIFO 0 */
-  HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_FS, 0, 0x10);
+      /* Set Tx FIFO 0 */
+      HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_FS, 0, 0x10);
 
-  /* Set Tx FIFO 2 */
-  HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_FS, 1, 0x10);
+      /* Set Tx FIFO 2 */
+      HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_FS, 1, 0x10);
 
-  /* Set Tx FIFO 3 */
-  HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_FS, 2, 0x20);
+      /* Set Tx FIFO 3 */
+      HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_FS, 2, 0x20);
+
+      USB_OTG_FS_PCD_Init = true;
+  }
   /* USER CODE END USB_Device_Init_PreTreatment_1 */
 
   /* Initialize and link controller HAL driver */
@@ -251,4 +273,69 @@ VOID USBX_APP_Device_Init(VOID)
 
   /* USER CODE END USB_Device_Init_PostTreatment */
 }
+
+
+extern UX_SLAVE_CLASS_CDC_ACM *cdc_acm;
+uint16_t MX_USBX_Device_UnInit(void)
+{
+    UINT Tx_Status = TX_SUCCESS;
+    UINT Ux_Status = UX_SUCCESS;
+
+    if ((Tx_Status == TX_SUCCESS) && (Ux_Status == UX_SUCCESS))
+        Tx_Status = tx_thread_terminate(&ux_cdc_write_thread);
+    if ((Tx_Status == TX_SUCCESS) && (Ux_Status == UX_SUCCESS))
+        Tx_Status = tx_thread_delete(&ux_cdc_write_thread);
+    if ((Tx_Status == TX_SUCCESS) && (Ux_Status == UX_SUCCESS))
+        Tx_Status = tx_byte_release((VOID *)CDC_ACM_WriteMemoryPtr);
+
+    if ((Tx_Status == TX_SUCCESS) && (Ux_Status == UX_SUCCESS))
+        Tx_Status = tx_thread_terminate(&ux_cdc_read_thread);
+    if ((Tx_Status == TX_SUCCESS) && (Ux_Status == UX_SUCCESS))
+        Tx_Status = tx_thread_delete(&ux_cdc_read_thread);
+    if ((Tx_Status == TX_SUCCESS) && (Ux_Status == UX_SUCCESS))
+        Tx_Status = tx_byte_release((VOID *)CDC_ACM_ReadMemoryPtr);
+
+    if ((Tx_Status == TX_SUCCESS) && (Ux_Status == UX_SUCCESS))
+        Tx_Status = tx_thread_delete(&ux_device_app_thread);
+    if ((Tx_Status == TX_SUCCESS) && (Ux_Status == UX_SUCCESS))
+        Tx_Status = tx_byte_release((VOID *)USBX_AllocatedHostAppTaskPtr);
+
+    if ((Tx_Status == TX_SUCCESS) && (Ux_Status == UX_SUCCESS))
+        Ux_Status = ux_device_stack_class_unregister(_ux_system_slave_class_cdc_acm_name, ux_device_class_cdc_acm_entry);
+
+    cdc_acm_interface_number = 0;
+    cdc_acm_configuration_number = 0;
+
+    cdc_acm_parameter.ux_slave_class_cdc_acm_instance_activate   = UX_NULL;
+    cdc_acm_parameter.ux_slave_class_cdc_acm_instance_deactivate = UX_NULL;
+    cdc_acm_parameter.ux_slave_class_cdc_acm_parameter_change    = UX_NULL;
+
+    if ((Tx_Status == TX_SUCCESS) && (Ux_Status == UX_SUCCESS))
+        Ux_Status = ux_device_stack_uninitialize();
+
+    if ((Tx_Status == TX_SUCCESS) && (Ux_Status == UX_SUCCESS))
+        Ux_Status = ux_system_uninitialize();
+
+    if ((Tx_Status == TX_SUCCESS) && (Ux_Status == UX_SUCCESS))
+        Tx_Status = tx_byte_release((VOID *)USBX_AllocatedStackMemoryPtr);
+
+    cdc_acm = UX_NULL;
+
+    uint16_t Status = Ux_Status & 0xFF;
+    Status = Status << 8;
+    Status = Status | (Tx_Status & 0xFF);
+    return(Status);
+
+} // END OF USBX_Device_UnInit
+
+
+void USBX_APP_Device_UnInit(void)
+{
+    if (HAL_PCD_Stop(&hpcd_USB_OTG_FS) != HAL_OK)
+        while(1);
+
+    if (ux_dcd_stm32_uninitialize((ULONG)USB_OTG_FS, (ULONG)&hpcd_USB_OTG_FS) != UX_SUCCESS)
+        while(1);
+}
+
 /* USER CODE END 1 */
