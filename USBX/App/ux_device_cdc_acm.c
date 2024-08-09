@@ -26,6 +26,7 @@
 #include "main.h"
 #include "TestApp_USB_CDC.h"
 #include "IO_Support.h"
+#include "TerminalEmulatorSupport.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -118,10 +119,14 @@ VOID usbx_cdc_acm_write_thread_entry(ULONG thread_input)
 {
       /* Private Variables */
       ULONG tx_actual_length;
-      const uint8_t message[] = "USBX Application Running!\r\n";
+      uint16_t Count = 0;
+      char Message[30] = {0}; //"USBX Application Running!\r\n";
+
       while(1)
       {
-             ux_device_class_cdc_acm_write(cdc_acm, (UCHAR *)(message), sizeof(message), &tx_actual_length);
+          sprintf(Message, "USBX Running VComm %d\r\n", Count);
+             ux_device_class_cdc_acm_write(cdc_acm, (UCHAR *)(Message), strlen(Message), &tx_actual_length);
+             Count++;
              tx_thread_sleep(100);
       }
 }
@@ -151,7 +156,13 @@ VOID usbx_cdc_acm_read_thread_entry(ULONG thread_input)
                        printf("TP 9 OFF\r\n");
                    }
                    break;
+                   default:
+                   {
+                       terminal_SetYellowForeground();
+                       printf("%c", UserRxBuffer[rx_actual_length-1]);
+                       terminal_SetDefaultForegroundColor();
                    }
+                   } // END OF SWITCH
              }
       }
 }
