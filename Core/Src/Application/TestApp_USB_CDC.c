@@ -120,6 +120,7 @@ uint16_t Init_TestAppHardware(void)
     TP10_CLR();
     TP11_CLR();
     STATUS_LED_OFF();
+//    VBUS_OFF();
 
     // STEP 2: Init hardware
     uint16_t InitStatus = 0x0000;

@@ -245,6 +245,8 @@ VOID USBX_APP_Device_Init(VOID)
   if (!USB_OTG_FS_PCD_Init)
   {
       MX_USB_OTG_FS_PCD_Init();
+  }
+
 
       /* USER CODE BEGIN USB_Device_Init_PreTreatment_1 */
       /* Set Rx FIFO */
@@ -260,7 +262,6 @@ VOID USBX_APP_Device_Init(VOID)
       HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_FS, 2, 0x20);
 
       USB_OTG_FS_PCD_Init = true;
-  }
   /* USER CODE END USB_Device_Init_PreTreatment_1 */
 
   /* Initialize and link controller HAL driver */

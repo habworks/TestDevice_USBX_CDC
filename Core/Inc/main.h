@@ -59,6 +59,8 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define STATUS_LED_Pin GPIO_PIN_1
 #define STATUS_LED_GPIO_Port GPIOA
+#define USB_OTG_VBUS_EN_Pin GPIO_PIN_9
+#define USB_OTG_VBUS_EN_GPIO_Port GPIOE
 #define TP9_Pin GPIO_PIN_13
 #define TP9_GPIO_Port GPIOE
 #define TP10_Pin GPIO_PIN_14

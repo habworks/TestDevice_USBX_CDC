@@ -53,6 +53,10 @@ extern"C" {
 #define TP11_TOGGLE()           HAL_GPIO_TogglePin(TP11_GPIO_Port, TP11_Pin)
 #define TP11_STATUS()           HAL_GPIO_ReadPin(TP11_GPIO_Port, TP11_Pin)
 
+#define VBUS_ON()               HAL_GPIO_WritePin(USB_OTG_VBUS_EN_GPIO_Port, USB_OTG_VBUS_EN_Pin, GPIO_PIN_SET)
+#define VBUS_OFF()              HAL_GPIO_WritePin(USB_OTG_VBUS_EN_GPIO_Port, USB_OTG_VBUS_EN_Pin, GPIO_PIN_RESET)
+#define VBUS_TOGGLE()           HAL_GPIO_TogglePin(USB_OTG_VBUS_EN_GPIO_Port, USB_OTG_VBUS_EN_Pin)
+#define VBUS_STATUS()           HAL_GPIO_ReadPin(USB_OTG_VBUS_EN_GPIO_Port, USB_OTG_VBUS_EN_Pin)
 
 #ifdef __cplusplus
 }
