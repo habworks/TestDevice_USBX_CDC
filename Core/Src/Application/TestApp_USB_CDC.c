@@ -1,28 +1,28 @@
 
 #/** ****************************************************************************************************
- * @file 			TestApp_USB_MSC.c
- * @brief			<Add a descrition of what the file does>
+ * @file            TestApp_USB_MSC.c
+ * @brief           <Add a descrition of what the file does>
  * ****************************************************************************************************
- * @author original	Hab Collector (habco)\n
+ * @author original Hab Collector (habco)\n
  *
- * @version       	See Main_Support.h: FIRMWARE_REV_MAJOR, FIRMWARE_REV_MINOR
+ * @version         See Main_Support.h: FIRMWARE_REV_MAJOR, FIRMWARE_REV_MINOR
  *
  * @param Development_Environment \n
- * Hardware:		<IC PN> \n
+ * Hardware:        <IC PN> \n
  * IDE:             STMCubeIDE VER 1.9.0 \n
  * Compiler:        GCC \n
  * Editor Settings: 1 Tab = 4 Spaces, Recommended Courier New 11
  *
  * @note            The associated header file provides MACRO functions for IO control
  *
- * 					This is an embedded application
- *		            It will be necessary to consult the reference documents to fully understand the code
+ *                  This is an embedded application
+ *                  It will be necessary to consult the reference documents to fully understand the code
  *                  It is suggested that the documents be reviewed in the order shown.
- *			          Schematic: <Schematic PN>
- *				      Test_USB_MSC
- *				      ACI Pittsburgh
+ *                    Schematic: <Schematic PN>
+ *                    Test_USB_MSC
+ *                    ACI Pittsburgh
  *
- * @copyright		Applied Concepts, Inc
+ * @copyright       Applied Concepts, Inc
  ********************************************************************************************************/
 
 #include "TestApp_USB_CDC.h"
@@ -44,16 +44,18 @@ extern TX_EVENT_FLAGS_GROUP USB_EventFlag;
 // Power toggle test commands
 static void TPx_Toggle(void *TestPoint);
 static void LED_Toggle(void *NotUsed);
-static void commDeviceClassDisable(void *NotUsed);
-static void commDeviceClassEnable(void *NotUsed);
+static void vComDeviceClassDisable(void *NotUsed);
+static void vComDeviceClassEnable(void *NotUsed);
+
+#define FULLY_REMOVE
 
 VOID testAppMainTask(ULONG InitValue)
 {
     // STEP 1: Add debug commands associated with the Spokane Task
     debugConsoleCommandAdd(TestApp.DebugConsole, "Toggle ", "Toggle TP<x> (x: 9, 10, 11)", TPx_Toggle, PARTIAL);
     debugConsoleCommandAdd(TestApp.DebugConsole, "LED", "Toggle LED power", LED_Toggle, COMPLETE);
-    debugConsoleCommandAdd(TestApp.DebugConsole, "CDC Off", "Disable CDC", commDeviceClassDisable, COMPLETE);
-    debugConsoleCommandAdd(TestApp.DebugConsole, "CDC On", "Enable CDC", commDeviceClassEnable, COMPLETE);
+    debugConsoleCommandAdd(TestApp.DebugConsole, "CDC Off", "Disable CDC", vComDeviceClassDisable, COMPLETE);
+    debugConsoleCommandAdd(TestApp.DebugConsole, "CDC On", "Enable CDC", vComDeviceClassEnable, COMPLETE);
 
     // STEP 2: Show start up message
     terminal_SetDefaultForegroundColor();
@@ -220,22 +222,31 @@ static void LED_Toggle(void *NotUsed)
 }
 
 
-static void commDeviceClassDisable(void *NotUsed)
+static void vComDeviceClassDisable(void *NotUsed)
 {
+#ifdef FULLY_REMOVE
     USBX_APP_Device_UnInit();
+    tx_thread_sleep(200);
     if (MX_USBX_Device_UnInit() == TX_SUCCESS)
         printf("USB CDC Turned off\r\n");
     else
         while(1);
+#else
+    USBX_APP_Device_UnInit();
+#endif
 }
 
 
 extern TX_BYTE_POOL *Ux_HostAppBytePool;
-static void commDeviceClassEnable(void *NotUsed)
+static void vComDeviceClassEnable(void *NotUsed)
 {
+#ifdef FULLY_REMOVE
     VOID *MemoryPointer;
     MemoryPointer = (VOID *)Ux_HostAppBytePool;
     if (MX_USBX_Device_Init(MemoryPointer) != UX_SUCCESS)
         while(1);
     printf("USB CDC Turned on\r\n");
+#else
+    USBX_APP_Device_Init();
+#endif
 }
